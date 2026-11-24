@@ -225,7 +225,26 @@ One Google Cloud OAuth client serves all sites (see
   URL. The forwarder sends nothing to Google and cannot change what the
   consent screen shows — Google renders it from its own registration.
 
-### 9.1 Client secret handling
+### 9.1 Multiple clients (one per purpose)
+
+There can be more than one Google client, each for a different purpose,
+chosen by the plugin by design — e.g. client A for send-only
+(`gmail.send`), client B for read-only (`gmail.readonly`), client C for
+read/write (`gmail.modify`). All clients register the **same**
+redirect URI (`https://transistor.pentagonal.org/google/callback`); the
+forwarder does not know or care which `client_id` was used — it only
+validates the state and forwards. The plugin picks the client per
+purpose.
+
+Costs of splitting clients: each client has its own consent screen and
+is verified by Google **separately** (sensitive scopes take days to
+weeks each). Note the scope tiers: `gmail.send`, `gmail.readonly`, and
+`gmail.modify` are **sensitive**; the full
+`https://mail.google.com/` scope is **restricted** — its verification
+is far stricter (including a third-party security assessment). Prefer
+`gmail.modify` for read/write.
+
+### 9.2 Client secret handling
 
 The `client_secret` must be sent by the plugin when it exchanges the code
 (Google requires it for Web application clients), so it ships inside the

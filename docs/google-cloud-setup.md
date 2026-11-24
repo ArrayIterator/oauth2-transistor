@@ -75,7 +75,16 @@ verification before the client leaves Testing mode:
 Plan the launch around this: the forwarder can be tested end-to-end with
 test users immediately, but public rollout waits for verification.
 
-## 6. Smoke test (test user)
+## 6. Additional clients (one per purpose)
+
+To add another client for a different purpose (e.g. a read-only client
+for `gmail.readonly`), repeat steps 2–4 for a new OAuth client. Every
+client registers the **same** redirect URI
+(`https://transistor.pentagonal.org/google/callback`) — the forwarder
+does not distinguish clients. Each client is verified by Google
+separately (see step 5).
+
+## 7. Smoke test (test user)
 
 1. In the plugin, start "Login with Gmail".
 2. Authorize with a test-user Google account.
