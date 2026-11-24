@@ -13,7 +13,7 @@ only validates the `state` and forwards the browser on.
 
 1. The plugin builds a `state` (base64url JSON, see `docs/spec.md`) and
    redirects the user to Google's authorization endpoint. The `redirect_uri`
-   is the forwarder: `https://transistor.pentagonal.org/google/callback`.
+   is the forwarder: `https://transistor.pentagonal.org/oauth2`.
 2. The user signs in and allows the app (scope: `gmail.send` only).
 3. Google redirects back to the forwarder with `code` + `state`
    (or `error` + `state` if the user denies).
@@ -32,11 +32,14 @@ needs only its own deployment config (`wrangler.toml`: the domain) and
 the one shared Google client — nothing per site, no database, no key
 management.
 
-## No provider field
+## One callback, no provider
 
-Version 1 is Google-only. There is no `provider` field in the state. If a
-second provider is ever added, it gets its own path
-(`https://transistor.pentagonal.org/microsoft/callback`), not a field in the state.
+There is exactly one callback path: `/oauth2`. The forwarder is
+provider-agnostic — it does not know or care which provider the flow
+came from. There is no `provider` field in the state and no provider
+in the path: the plugin knows which provider it started, the
+forwarder only validates the state and forwards. A second provider
+reuses the same path.
 
 ## Supported providers
 
@@ -44,9 +47,9 @@ Updated as providers are added.
 
 | Provider | Status | Callback path | Scope |
 | --- | --- | --- | --- |
-| Google | ✅ Supported (v1) | `/google/callback` | `gmail.send` |
-| Microsoft | Planned | `/microsoft/callback` | — |
-| Yahoo | Planned | `/yahoo/callback` | — |
+| Google | ✅ Supported (v1) | `/oauth2` | `gmail.send` |
+| Microsoft | Planned | `/oauth2` | — |
+| Yahoo | Planned | `/oauth2` | — |
 
 ## Repo layout
 

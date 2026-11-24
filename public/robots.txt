@@ -5,7 +5,5 @@
 # here is indexed. A blanket Disallow would hide the noindex tag from
 # crawlers, which is why only the callback paths are disallowed.
 User-agent: *
-Disallow: /google/
-Disallow: /microsoft/
-Disallow: /yahoo/
+Disallow: /oauth2
 Allow: /

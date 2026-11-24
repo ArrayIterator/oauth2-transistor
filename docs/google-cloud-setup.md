@@ -41,7 +41,7 @@ APIs & Services → Credentials → Create Credentials → OAuth client ID.
 - Authorized redirect URIs — add exactly this one (no trailing slash):
 
 ```
-https://transistor.pentagonal.org/google/callback
+https://transistor.pentagonal.org/oauth2
 ```
 
 Google matches the redirect URI **exactly** — scheme, host, path, and
@@ -80,7 +80,7 @@ test users immediately, but public rollout waits for verification.
 To add another client for a different purpose (e.g. a read-only client
 for `gmail.readonly`), repeat steps 2–4 for a new OAuth client. Every
 client registers the **same** redirect URI
-(`https://transistor.pentagonal.org/google/callback`) — the forwarder
+(`https://transistor.pentagonal.org/oauth2`) — the forwarder
 does not distinguish clients. Each client is verified by Google
 separately (see step 5).
 

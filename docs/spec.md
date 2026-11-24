@@ -22,8 +22,7 @@ on it.
 
 | Path | Purpose |
 | --- | --- |
-| `GET /google/callback` | The `redirect_uri` registered with Google. The only live endpoint in v1. |
-| `GET /<provider>/callback` | Reserved pattern for a future provider (e.g. `/microsoft/callback`). Not implemented. |
+| `GET /oauth2` | The `redirect_uri` registered with every provider. The only live endpoint in v1 — and the only callback path, ever. |
 
 Any other path → the error page with HTTP 404. Any non-GET request →
 the error page with HTTP 405.
@@ -71,7 +70,8 @@ the forwarder decodes it and reads proper named fields.
 Rules:
 
 - **No `provider` field.** v1 is Google-only. A future provider is
-  distinguished by the endpoint path (§2), not by the state.
+  distinguished by nothing — the forwarder is provider-agnostic (§2)
+  and the plugin knows which provider it started.
 - **No `algo` field.** The algorithm is fixed to SHA-256 in code. (MD5 is
   not available in the Workers runtime, SHA-1 should not be offered, and
   an attacker-controlled algorithm field would only invite a downgrade to
@@ -98,7 +98,7 @@ plus PKCE, not by the forwarder.
 
 ## 4. Forwarder validation (on return from Google)
 
-On `GET /google/callback?code=...&state=...` (or `?error=...&state=...`),
+On `GET /oauth2?code=...&state=...` (or `?error=...&state=...`),
 the forwarder runs these checks, in order. **Any failure → HTTP 400 +
 the error page (§6). No redirect, no forward.**
 
@@ -195,7 +195,7 @@ not in this repo.)
 - Store the pending flow server-side (e.g. a WordPress transient) keyed by
   `n`: the PKCE verifier and the issuing admin context.
 - Build the Google authorization URL with `client_id` (shared relay
-  client), `redirect_uri` = `https://transistor.pentagonal.org/google/callback`,
+  client), `redirect_uri` = `https://transistor.pentagonal.org/oauth2`,
   and redirect the user's browser straight to Google. The authorization
   request goes directly browser → Google; the forwarder is not involved
   until Google redirects back to it (§4). The forwarder never proxies,
@@ -215,7 +215,7 @@ One Google Cloud OAuth client serves all sites (see
 `docs/google-cloud-setup.md`):
 
 - Type: **Web application**.
-- Authorized redirect URI: `https://transistor.pentagonal.org/google/callback`
+- Authorized redirect URI: `https://transistor.pentagonal.org/oauth2`
   (exactly — scheme, host, path, and trailing slash must all match).
 - Scope: `https://www.googleapis.com/auth/gmail.send` only. This is a
   **sensitive scope**: Google verification is required before public use
@@ -231,7 +231,7 @@ There can be more than one Google client, each for a different purpose,
 chosen by the plugin by design — e.g. client A for send-only
 (`gmail.send`), client B for read-only (`gmail.readonly`), client C for
 read/write (`gmail.modify`). All clients register the **same**
-redirect URI (`https://transistor.pentagonal.org/google/callback`); the
+redirect URI (`https://transistor.pentagonal.org/oauth2`); the
 forwarder does not know or care which `client_id` was used — it only
 validates the state and forwards. The plugin picks the client per
 purpose.
@@ -292,8 +292,8 @@ any of those would change the trust model and is out of scope for v1.
 
 Nothing on this service is meant to be indexed or cached:
 
-- `public/robots.txt` disallows the functional paths (`/google/`,
-  `/microsoft/`, `/yahoo/`). It deliberately does **not** disallow the
+- `public/robots.txt` disallows the functional path (`/oauth2`).
+  It deliberately does **not** disallow the
   public pages — a blanket `Disallow` would prevent crawlers from ever
   fetching them, which would hide the `noindex` tag from the very
   crawlers it is addressed to.
