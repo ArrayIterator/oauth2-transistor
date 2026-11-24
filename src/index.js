@@ -34,18 +34,21 @@ const NONCE_RE = /^[0-9a-f]{32}$/;
 // as a probe oracle. The 404/405 messages say what actually happened.
 const ERROR_PAGES = {
   400: {
+    code: '400',
     title: 'Something went wrong',
     message:
       'Invalid or expired authorization request. ' +
       'Please start again from your WordPress admin.',
   },
   404: {
+    code: '404',
     title: 'Page not found',
     message:
       'The page you are looking for does not exist. ' +
       'If you followed a link here, it may be outdated.',
   },
   405: {
+    code: '405',
     title: 'Method not allowed',
     message: 'This service only accepts GET requests.',
   },
@@ -231,6 +234,7 @@ async function errorResponse(env, request, status) {
     );
     if (assetRes.ok) {
       body = (await assetRes.text())
+        .replaceAll('{{ERROR_CODE}}', page.code)
         .replaceAll('{{ERROR_TITLE}}', page.title)
         .replaceAll('{{ERROR_MESSAGE}}', page.message);
       contentType =

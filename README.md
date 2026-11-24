@@ -60,12 +60,16 @@ Updated as providers are added.
 wrangler.toml            # Worker name, custom domain, compatibility date
 src/index.js             # the Worker
 public/
-  index.html             # home page — simple, informational (English)
+  index.html             # home page — minimal: the animated Transistor
+                         # logo, name, slogan ("Where Modules Connect."),
+                         # footer links. Nothing else.
   about.html             # about the service (English)
   privacy.html           # privacy policy (English)
   terms.html             # terms of service (English)
-  error.html             # error page; {{ERROR_TITLE}} / {{ERROR_MESSAGE}}
-                         # placeholders the Worker fills in per status
+  error.html             # modern error page (big gradient status code,
+                         # logo, button); {{ERROR_CODE}} / {{ERROR_TITLE}}
+                         # / {{ERROR_MESSAGE}} placeholders the Worker
+                         # fills in per status (400/404/405)
   robots.txt             # disallows callback paths; public pages noindex via meta + header
   assets/images/logo/    # Transistor logo: SVG + PNG 1024 + sizes
                          # 16/32/48/120/180/192/512 (120px = Google OAuth icon)

@@ -167,12 +167,17 @@ is a pure HTTP 302. The only body it ever returns is the error page
 
 - HTTP status: 400 (bad state) / 404 (unknown path) / 405 (wrong method).
 - Content: one page, with the message filled in per status by the Worker
-  (`{{ERROR_TITLE}}` / `{{ERROR_MESSAGE}}` placeholders):
+  (`{{ERROR_CODE}}` / `{{ERROR_TITLE}}` / `{{ERROR_MESSAGE}}`
+  placeholders):
   - 400: "Something went wrong" / "Invalid or expired authorization
     request. Please start again from your WordPress admin."
   - 404: "Page not found" / "The page you are looking for does not
     exist. If you followed a link here, it may be outdated."
   - 405: "Method not allowed" / "This service only accepts GET requests."
+- Design: modern and minimal — the Transistor logo, the status code big
+  in the logo gradient, the title, the message, and a "Back to
+  Transistor" button. Same look for all three statuses, only the code
+  and text change.
 - **No detail** about which check failed on the 400 — a specific message
   would give an attacker a probe oracle.
 - Headers: `Cache-Control: no-store, no-cache, must-revalidate`,
