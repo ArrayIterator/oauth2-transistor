@@ -46,8 +46,9 @@ wrangler.toml            # Worker name, custom domain, compatibility date
 src/index.js             # the Worker (not built yet)
 public/
   site.css               # shared styles for the public pages
-  privacy.html           # privacy policy (English, default)
-  terms.html             # terms of service (English, default)
+  about.html             # about the service (English)
+  privacy.html           # privacy policy (English)
+  terms.html             # terms of service (English)
   error.html             # minimal error page (design pending logo asset)
   error.css
   pentagonal-logo.svg    # pending — logo file not in the repo yet

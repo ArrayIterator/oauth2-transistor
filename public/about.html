@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About — Pentagonal OAuth Relay</title>
+<meta name="description" content="About the Pentagonal OAuth2 forwarding service at transistor.pentagonal.org.">
+<link rel="stylesheet" href="/site.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="brand">
+    <svg width="34" height="34" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 95,40 78,94 22,94 5,40" fill="none" stroke="#1a1a1a" stroke-width="7" stroke-linejoin="round"/></svg>
+    <div>
+      <div class="name">Pentagonal</div>
+      <div class="sub">OAuth Relay &middot; transistor.pentagonal.org</div>
+    </div>
+  </header>
+
+  <h1>About</h1>
+  <p class="updated">Pentagonal OAuth Relay</p>
+
+  <p>The Pentagonal OAuth Relay is a free, public forwarding service for
+  OAuth2 sign-in. It exists for one reason: letting a WordPress site offer
+  one-click Google sign-in ("Login with Gmail") without every site having
+  to register its own Google Cloud OAuth client.</p>
+
+  <h2>How it works</h2>
+  <p>Your WordPress site (for example, one running the TrayDigita Mailer
+  plugin) sends you to Google to sign in and allow the app. Google then
+  sends you back — not directly to your site, but to this relay. The relay
+  checks the request and forwards your browser to your own site, which
+  finishes the sign-in directly with Google.</p>
+  <p>The relay is deliberately boring: it holds no tokens, no accounts, no
+  sessions, and no database. It cannot read your mail, and it stores
+  nothing about you. See the <a href="/privacy">Privacy Policy</a> for the
+  full picture.</p>
+
+  <h2>Supported providers</h2>
+  <ul>
+    <li><strong>Google</strong> — supported. Sign in with a Google account
+      to connect Gmail (send-only scope).</li>
+    <li><strong>Microsoft, Yahoo</strong> — planned, not available yet.</li>
+  </ul>
+
+  <h2>Who runs it</h2>
+  <p>The service is operated by Pentagonal and runs on Cloudflare Workers.
+  The code and the specification are public:
+  <a href="https://github.com/ArrayIterator/oauth2-forwarders">github.com/ArrayIterator/oauth2-forwarders</a>.</p>
+
+  <h2>Contact</h2>
+  <p>Questions: <a href="mailto:privacy@pentagonal.org">privacy@pentagonal.org</a>.</p>
+
+  <footer>
+    <nav>
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="https://pentagonal.org">pentagonal.org</a>
+    </nav>
+  </footer>
+</div>
+</body>
+</html>

@@ -35,8 +35,9 @@ GET only):
 
 | Path | File |
 | --- | --- |
-| `GET /privacy` | `public/privacy.html` (English, default) |
-| `GET /terms` | `public/terms.html` (English, default) |
+| `GET /about` | `public/about.html` (English) |
+| `GET /privacy` | `public/privacy.html` (English) |
+| `GET /terms` | `public/terms.html` (English) |
 | `GET /site.css` | `public/site.css` (shared styles) |
 
 The privacy policy URL (`https://transistor.pentagonal.org/privacy`) is the one
