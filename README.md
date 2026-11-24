@@ -52,8 +52,6 @@ Updated as providers are added.
 | Provider | Status | Callback path | Scope |
 | --- | --- | --- | --- |
 | Google | ✅ Supported (v1) | `/oauth2` | Gmail: send + read-only + userinfo (see below) |
-| Microsoft | Planned | `/oauth2` | — |
-| Yahoo | Planned | `/oauth2` | — |
 
 ## Gmail scopes (email)
 
