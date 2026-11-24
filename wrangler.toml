@@ -49,3 +49,12 @@ directory = "./public"
 binding = "ASSETS"
 not_found_handling = "none"
 run_worker_first = true
+
+# Analytics (optional). Set ANALYTICS_ID to a Google Analytics 4
+# measurement ID (G-...) and the Worker injects the gtag.js snippet
+# into <head> of every HTML page it serves (home, about, privacy,
+# terms, error). Empty/missing = no snippet, pages served as-is.
+# The ID is public (it ships in the page source), so it is a plain
+# var here, not a secret. Change it and redeploy (push to GitHub).
+[vars]
+ANALYTICS_ID = ""

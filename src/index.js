@@ -232,10 +232,13 @@ async function errorResponse(env, request, status) {
   let contentType = 'text/html; charset=utf-8';
   const assetRes = await fetchAssetRaw(env, request, '/error.html');
   if (assetRes && assetRes.ok) {
-    body = (await assetRes.text())
-      .replaceAll('{{ERROR_CODE}}', page.code)
-      .replaceAll('{{ERROR_TITLE}}', page.title)
-      .replaceAll('{{ERROR_MESSAGE}}', page.message);
+    body = injectAnalytics(
+      (await assetRes.text())
+        .replaceAll('{{ERROR_CODE}}', page.code)
+        .replaceAll('{{ERROR_TITLE}}', page.title)
+        .replaceAll('{{ERROR_MESSAGE}}', page.message),
+      env,
+    );
     contentType = assetRes.headers.get('Content-Type') || contentType;
   }
 
@@ -286,9 +289,59 @@ async function fetchAsset(env, request, path) {
   if (!res || res.status === 404) {
     return null;
   }
+  const contentType = res.headers.get('Content-Type') || '';
   const headers = new Headers(res.headers);
   headers.set('X-Robots-Tag', ROBOTS_TAG);
+  // HTML pages get the analytics snippet in <head> when an
+  // ANALYTICS_ID is configured (env var); anything else (images,
+  // robots.txt, ...) is served untouched.
+  if (contentType.includes('text/html')) {
+    const html = await res.text();
+    return new Response(injectAnalytics(html, env), {
+      status: res.status,
+      headers,
+    });
+  }
   return new Response(res.body, { status: res.status, headers });
+}
+
+/**
+ * Google Analytics 4 snippet. The measurement ID (G-...) comes from
+ * the ANALYTICS_ID env var — it is public (it ships in the page
+ * source), so it lives in wrangler.toml [vars], not in a secret.
+ * No ID configured → no snippet, pages served as-is.
+ */
+function analyticsSnippet(id) {
+  return (
+    '<script async src="https://www.googletagmanager.com/gtag/js?id=' +
+    id +
+    '"></script>' +
+    '<script>window.dataLayer=window.dataLayer||[];' +
+    'function gtag(){dataLayer.push(arguments);}' +
+    'gtag("js",new Date());gtag("config","' +
+    id +
+    '");</script>'
+  );
+}
+
+/**
+ * Insert the analytics snippet just before </head>. Returns the HTML
+ * unchanged when no ANALYTICS_ID is set, when it is not a plain
+ * measurement ID (letters, digits, dash, underscore only), or when
+ * the page has no </head> to anchor on.
+ */
+function injectAnalytics(html, env) {
+  const id =
+    env && typeof env.ANALYTICS_ID === 'string'
+      ? env.ANALYTICS_ID.trim()
+      : '';
+  if (!id || !/^[A-Za-z0-9_-]+$/.test(id)) {
+    return html;
+  }
+  if (!html.includes('</head>')) {
+    return html;
+  }
+  return html.replace('</head>', analyticsSnippet(id) + '</head>');
 }
 
 /** True when the asset path exists (status anything but 404). */
