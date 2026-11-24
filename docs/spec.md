@@ -220,6 +220,10 @@ One Google Cloud OAuth client serves all sites (see
 - Scope: `https://www.googleapis.com/auth/gmail.send` only. This is a
   **sensitive scope**: Google verification is required before public use
   (weeks); until then the client runs with test users only.
+- The consent screen Google shows (app name, logo) comes from this
+  client's registration, looked up by `client_id` in the authorization
+  URL. The forwarder sends nothing to Google and cannot change what the
+  consent screen shows — Google renders it from its own registration.
 
 ### 9.1 Client secret handling
 
