@@ -1,4 +1,4 @@
-# OAuth2 Forwarders
+# Transistor
 
 Stateless, public OAuth2 authorization-code forwarder running on Cloudflare Workers.
 
@@ -7,7 +7,10 @@ without every site registering its own Google Cloud OAuth client. The
 forwarder holds **no tokens, no codes, no sessions, and no database** — it
 only validates the `state` and forwards the browser on.
 
-> **Status:** spec + docs. The Worker itself is not built yet.
+> **Status:** Worker built (`src/index.js`) and verified locally
+> (61 checks: happy path, error path, all validation failures,
+> open-redirect attempts, 404/405, statics). Not deployed yet —
+> `transistor.pentagonal.org` is not live until `npx wrangler deploy`.
 
 ## How it works
 
@@ -55,20 +58,25 @@ Updated as providers are added.
 
 ```
 wrangler.toml            # Worker name, custom domain, compatibility date
-src/index.js             # the Worker (not built yet)
+src/index.js             # the Worker
 public/
-  site.css               # shared styles for the public pages
+  index.html             # home page — simple, informational (English)
   about.html             # about the service (English)
   privacy.html           # privacy policy (English)
   terms.html             # terms of service (English)
+  error.html             # error page; {{ERROR_TITLE}} / {{ERROR_MESSAGE}}
+                         # placeholders the Worker fills in per status
   robots.txt             # disallows callback paths; public pages noindex via meta + header
-  error.html             # minimal error page (design pending logo asset)
-  error.css
-  pentagonal-logo.svg    # pending — logo file not in the repo yet
+  assets/images/logo/    # Transistor logo: SVG + PNG 1024 + sizes
+                         # 16/32/48/120/180/192/512 (120px = Google OAuth icon)
 docs/
   spec.md                # full specification (state format, checks, forward, errors)
   google-cloud-setup.md  # creating the shared Google OAuth client
 ```
+
+Pages are plain static HTML with **inline CSS** (no separate stylesheet,
+no build step). The logo is the Transistor icon; the favicon is the 32px
+PNG (16px + 180px Apple touch icon also linked).
 
 Legal pages: `https://transistor.pentagonal.org/privacy` and
 `/terms` (English). The privacy policy URL is the one Google's OAuth verification

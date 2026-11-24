@@ -2,7 +2,7 @@
 
 **Spec version:** 1 (2026-11-24)
 **State format version:** 5
-**Status:** draft — Worker not built yet
+**Status:** Worker built (`src/index.js`) and verified locally; not deployed yet
 
 This document is the contract for the forwarder. The plugin side
 (TrayDigita Mailer, Gmail provider) implements the other half; anything
@@ -29,15 +29,19 @@ the error page with HTTP 405.
 
 ### Static pages
 
-The Worker also serves the legal pages as static files (no validation,
-GET only):
+The Worker also serves the public pages as static files (no validation,
+GET only). They are plain HTML with **inline CSS** — no separate
+stylesheet, no build step. Branding is Transistor (title + logo);
+the favicon is the Transistor icon (32px PNG, plus 16px and 180px
+Apple touch icon).
 
 | Path | File |
 | --- | --- |
+| `GET /` | `public/index.html` — home, simple and informational (English) |
 | `GET /about` | `public/about.html` (English) |
 | `GET /privacy` | `public/privacy.html` (English) |
 | `GET /terms` | `public/terms.html` (English) |
-| `GET /site.css` | `public/site.css` (shared styles) |
+| `GET /assets/images/logo/*` | Transistor logo files (SVG + PNG sizes) |
 
 The privacy policy URL (`https://transistor.pentagonal.org/privacy`) is the one
 submitted to Google for OAuth verification.
@@ -157,19 +161,24 @@ Rules:
 ## 6. Error page
 
 The forwarder serves **no HTML page at all** on the happy path — that path
-is a pure HTTP 302. The only body it ever returns is a minimal error page
-when validation fails (§4) or the path is unknown (§2).
+is a pure HTTP 302. The only body it ever returns is the error page
+(`public/error.html`) when validation fails (§4), the path is unknown
+(§2), or the method is wrong (§2).
 
 - HTTP status: 400 (bad state) / 404 (unknown path) / 405 (wrong method).
-- Content: a minimal page with a generic message, e.g. "Invalid or expired
-  authorization request. Please start again from your WordPress admin."
-- **No detail** about which check failed — a specific message would give
-  an attacker a probe oracle.
+- Content: one page, with the message filled in per status by the Worker
+  (`{{ERROR_TITLE}}` / `{{ERROR_MESSAGE}}` placeholders):
+  - 400: "Something went wrong" / "Invalid or expired authorization
+    request. Please start again from your WordPress admin."
+  - 404: "Page not found" / "The page you are looking for does not
+    exist. If you followed a link here, it may be outdated."
+  - 405: "Method not allowed" / "This service only accepts GET requests."
+- **No detail** about which check failed on the 400 — a specific message
+  would give an attacker a probe oracle.
 - Headers: `Cache-Control: no-store, no-cache, must-revalidate`,
   `Pragma: no-cache`, `X-Robots-Tag: noindex, noarchive, noodp, noydir`
   (see §5), plus the `<meta name="robots">` tag in the HTML.
-- Branding: Pentagonal logo (`public/pentagonal-logo.svg`) — asset pending;
-  the page design is tracked separately and is not part of this spec.
+- Branding: Transistor logo + favicon, same as the other pages.
 
 ## 7. Google error behavior
 
@@ -319,8 +328,8 @@ Nothing on this service is meant to be indexed or cached:
   to no longer exist — but they are harmless and included as requested.)
 - The 302 and the error page carry `Cache-Control: no-store, no-cache,
   must-revalidate` + `Pragma: no-cache` (§5, §6). Static pages
-  (`/about`, `/privacy`, `/terms`, `/site.css`, `/robots.txt`) may be
-  cached normally by browsers and CDNs.
+  (`/`, `/about`, `/privacy`, `/terms`, `/assets/images/logo/*`,
+  `/robots.txt`) may be cached normally by browsers and CDNs.
 
 ## 13. Versioning
 

@@ -11,10 +11,16 @@
  *   GET /oauth2   — the only live endpoint. Validates state, 302s to the
  *                    site's fallback callback URL with code (or error)
  *                    + the full state, verbatim.
- *   GET /about, /privacy, /terms, /site.css, /robots.txt, ... — static
- *                    files served from public/ via the assets binding.
+ *   GET /, /about, /privacy, /terms, /robots.txt, ... — static files
+ *                    served from public/ via the assets binding.
  *   Anything else — the error page, HTTP 404.
  *   Any non-GET — the error page, HTTP 405.
+ *
+ * Pages are plain static HTML with inline CSS (no build step, no
+ * separate stylesheet). The error page is one file (public/error.html)
+ * with {{ERROR_TITLE}} / {{ERROR_MESSAGE}} placeholders the Worker
+ * fills in per status, so a 404 says "Page not found" instead of the
+ * authorization message.
  */
 
 const ROBOTS_TAG = 'noindex, noarchive, noodp, noydir';
@@ -23,6 +29,28 @@ const CALLBACK_ACTION = 'traydigita_mailer_gmail_callback';
 const CALLBACK_PATH = '/wp-admin/admin-post.php';
 const NONCE_RE = /^[0-9a-f]{32}$/;
 
+// What the error page says, per status. The 400 message stays generic
+// on purpose — no detail about which check failed, so it can't be used
+// as a probe oracle. The 404/405 messages say what actually happened.
+const ERROR_PAGES = {
+  400: {
+    title: 'Something went wrong',
+    message:
+      'Invalid or expired authorization request. ' +
+      'Please start again from your WordPress admin.',
+  },
+  404: {
+    title: 'Page not found',
+    message:
+      'The page you are looking for does not exist. ' +
+      'If you followed a link here, it may be outdated.',
+  },
+  405: {
+    title: 'Method not allowed',
+    message: 'This service only accepts GET requests.',
+  },
+};
+
 // Minimal fallback if the static error page cannot be served (e.g. the
 // Worker is deployed without the assets binding). Same generic message,
 // no detail about which check failed.
@@ -30,7 +58,7 @@ const MINIMAL_ERROR_HTML =
   '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width, initial-scale=1">' +
   '<meta name="robots" content="noindex, noarchive, noodp, noydir">' +
-  '<title>Something went wrong — Pentagonal OAuth Relay</title></head>' +
+  '<title>Something went wrong — Transistor</title></head>' +
   '<body><h1>Something went wrong</h1>' +
   '<p>Invalid or expired authorization request. ' +
   'Please start again from your WordPress admin.</p></body></html>';
@@ -189,10 +217,12 @@ function redirectResponse(location) {
 
 /**
  * The error page (spec §6): public/error.html served from the assets
- * binding, with the right status and headers. Falls back to an inline
- * minimal page if the asset cannot be served.
+ * binding, with the {{ERROR_TITLE}} / {{ERROR_MESSAGE}} placeholders
+ * filled in for this status, plus the right status and headers. Falls
+ * back to an inline minimal page if the asset cannot be served.
  */
 async function errorResponse(env, request, status) {
+  const page = ERROR_PAGES[status] ?? ERROR_PAGES[400];
   let body = null;
   let contentType = 'text/html; charset=utf-8';
   try {
@@ -200,7 +230,9 @@ async function errorResponse(env, request, status) {
       new Request(new URL('/error.html', request.url), { method: 'GET' }),
     );
     if (assetRes.ok) {
-      body = assetRes.body;
+      body = (await assetRes.text())
+        .replaceAll('{{ERROR_TITLE}}', page.title)
+        .replaceAll('{{ERROR_MESSAGE}}', page.message);
       contentType =
         assetRes.headers.get('Content-Type') || contentType;
     }
@@ -229,7 +261,13 @@ async function errorResponse(env, request, status) {
 async function serveStatic(env, request) {
   const url = new URL(request.url);
   const candidates = [url.pathname];
-  if (!url.pathname.includes('.') && !url.pathname.endsWith('/')) {
+  // The home page: / serves public/index.html.
+  if (url.pathname === '/') {
+    candidates.push('/index.html');
+  } else if (!url.pathname.includes('.') && !url.pathname.endsWith('/')) {
+    // Extensionless page URLs (/about, /privacy, /terms) map to their
+    // .html files — the asset store only has the .html files, so a bare
+    // /terms lookup would 404 without this.
     candidates.push(url.pathname + '.html');
   }
   for (const path of candidates) {

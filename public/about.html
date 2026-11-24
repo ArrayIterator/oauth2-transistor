@@ -3,25 +3,127 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>About — Pentagonal OAuth Relay</title>
-<meta name="description" content="About the Pentagonal OAuth2 forwarding service at transistor.pentagonal.org.">
+<title>About — Transistor</title>
+<meta name="description" content="About the Transistor OAuth2 forwarding service at transistor.pentagonal.org.">
 <meta name="robots" content="noindex, noarchive, noodp, noydir">
-<link rel="stylesheet" href="/site.css">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/images/logo/transistor-icon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/images/logo/transistor-icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/images/logo/transistor-icon-180.png">
+<style>
+/* Shared styles for the public pages of transistor.pentagonal.org
+   (privacy policy, terms of service, error page).
+   Plain CSS, no build step, no external requests. */
+
+:root {
+  --ink: #1a1a1a;
+  --muted: #5f6368;
+  --line: #e0e0e0;
+  --accent: #1a73e8;
+  --bg: #ffffff;
+  --bg-soft: #f8f9fa;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-text-size-adjust: 100%;
+}
+
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 20px 64px;
+}
+
+/* Brand header */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--line);
+}
+.brand svg, .brand img { flex: none; }
+.brand .name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.brand .sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+h1 {
+  font-size: 28px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+h2 {
+  font-size: 19px;
+  line-height: 1.35;
+  margin: 36px 0 8px;
+}
+p { margin: 0 0 14px; }
+ul { margin: 0 0 14px; padding-left: 22px; }
+li { margin-bottom: 6px; }
+
+.updated {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+footer {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  color: var(--muted);
+}
+footer a { color: var(--muted); }
+footer nav { display: flex; gap: 20px; flex-wrap: wrap; }
+
+@media (max-width: 560px) {
+  .wrap { padding: 32px 16px 48px; }
+  h1 { font-size: 24px; }
+}
+</style>
 </head>
 <body>
 <div class="wrap">
   <header class="brand">
-    <svg width="34" height="34" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 95,40 78,94 22,94 5,40" fill="none" stroke="#1a1a1a" stroke-width="7" stroke-linejoin="round"/></svg>
+    <img src="/assets/images/logo/transistor-icon.svg" width="34" height="34" alt="Transistor">
     <div>
-      <div class="name">Pentagonal</div>
+      <div class="name">Transistor</div>
       <div class="sub">OAuth Relay &middot; transistor.pentagonal.org</div>
     </div>
   </header>
 
   <h1>About</h1>
-  <p class="updated">Pentagonal OAuth Relay</p>
+  <p class="updated">Transistor</p>
 
-  <p>The Pentagonal OAuth Relay is a free, public forwarding service for
+  <p>Transistor is a free, public forwarding service for
   OAuth2 sign-in. It exists for one reason: letting a WordPress site offer
   one-click Google sign-in ("Login with Gmail") without every site having
   to register its own Google Cloud OAuth client.</p>
@@ -47,7 +149,7 @@
   <h2>Who runs it</h2>
   <p>The service is operated by Pentagonal and runs on Cloudflare Workers.
   The code and the specification are public:
-  <a href="https://github.com/ArrayIterator/oauth2-forwarders">github.com/ArrayIterator/oauth2-forwarders</a>.</p>
+  <a href="https://github.com/ArrayIterator/oauth2-transistor">github.com/ArrayIterator/oauth2-transistor</a>.</p>
 
   <h2>Contact</h2>
   <p>Questions: <a href="mailto:privacy@pentagonal.org">privacy@pentagonal.org</a>.</p>
