@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Pentagonal OAuth Relay</title>
+<meta name="description" content="Privacy policy for the Pentagonal OAuth2 forwarding service at transistor.pentagonal.org.">
+<link rel="stylesheet" href="/site.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="brand">
+    <svg width="34" height="34" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 95,40 78,94 22,94 5,40" fill="none" stroke="#1a1a1a" stroke-width="7" stroke-linejoin="round"/></svg>
+    <div>
+      <div class="name">Pentagonal</div>
+      <div class="sub">OAuth Relay &middot; transistor.pentagonal.org</div>
+    </div>
+  </header>
+
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: 24 November 2026</p>
+  <p class="lang">Also available in <a href="/id/privacy">Bahasa Indonesia</a>.</p>
+
+  <p>Pentagonal operates the OAuth2 forwarding service at
+  <code>transistor.pentagonal.org</code> (the "Service"). The Service lets a
+  WordPress site connect a Gmail account through Google sign-in without
+  every site registering its own Google Cloud OAuth client. This policy
+  explains what the Service does with your data. In short: it processes
+  almost nothing, and stores nothing.</p>
+
+  <h2>What the Service does</h2>
+  <p>When you click "Login with Gmail" in your WordPress admin, Google
+  sends your browser back to the Service with an authorization code. The
+  Service checks the request, then forwards your browser to your own
+  WordPress site. Your site then exchanges the code for tokens
+  <strong>directly with Google</strong>. The Service never receives, stores,
+  or handles those tokens.</p>
+
+  <h2>Data processed in transit</h2>
+  <p>For each authorization request, the Service processes the following
+  in memory, only for the time needed to handle that single request:</p>
+  <ul>
+    <li>The <strong>authorization code</strong> from Google — passed through
+      to your site, never stored, never logged.</li>
+    <li>The <strong>state parameter</strong> — a small JSON object your site
+      created (a random nonce, an expiry time, and your site's callback
+      URL). The Service validates it and forwards it back unchanged. It is
+      never stored.</li>
+    <li>Technical data needed to deliver the request over the internet
+      (such as your IP address and browser information), processed by our
+      hosting provider, Cloudflare, under
+      <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare's privacy policy</a>.</li>
+  </ul>
+
+  <h2>Data we store</h2>
+  <p><strong>None.</strong> The Service has no database, no user accounts,
+  no sessions, and no cookies. It does not run analytics and does not track
+  you across sites. Once a request is answered, everything about it is
+  discarded.</p>
+
+  <h2>What we never touch</h2>
+  <ul>
+    <li>Your emails — the Service never reads, sends, or stores mail. The
+      Gmail scope requested is <code>gmail.send</code> only, and it is your
+      WordPress site (not the Service) that sends mail using the tokens it
+      holds.</li>
+    <li>Your Google account data — handled by Google under
+      <a href="https://policies.google.com/privacy">Google's privacy policy</a>.</li>
+    <li>Your access or refresh tokens — stored on your own WordPress site
+      only, never on the Service. How your site stores them is your site
+      administrator's responsibility.</li>
+  </ul>
+
+  <h2>Data retention and deletion</h2>
+  <p>Because the Service stores no personal data, there is nothing to retain
+  and nothing to delete. If you want the tokens held by your WordPress site
+  removed, disconnect the Gmail account from your site's admin panel and
+  revoke the app's access in your
+  <a href="https://myaccount.google.com/permissions">Google account permissions</a>.</p>
+
+  <h2>Children</h2>
+  <p>The Service is a tool for website administrators. It is not directed
+  at children, and we do not knowingly collect data from children.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>We may update this policy from time to time. The "Last updated" date
+  at the top shows when it last changed. Continued use of the Service after
+  a change means you accept the updated policy.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy: <a href="mailto:privacy@pentagonal.org">privacy@pentagonal.org</a>.</p>
+
+  <footer>
+    <nav>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="https://pentagonal.org">pentagonal.org</a>
+    </nav>
+  </footer>
+</div>
+</body>
+</html>

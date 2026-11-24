@@ -66,7 +66,8 @@ verification before the client leaves Testing mode:
 1. In the consent screen, click **Publish app** → **Prepare for
    verification**.
 2. Provide the requested information (app description, why the scope is
-   needed, a privacy policy URL, a demo video of the flow).
+   needed, a privacy policy URL — use
+   `https://transistor.pentagonal.org/privacy` — a demo video of the flow).
 3. Verification typically takes **days to weeks**. Until it passes, only
    test users can authorize — everyone else sees an "unverified app"
    warning (and, after the test-user cap, an error).
