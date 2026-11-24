@@ -52,6 +52,7 @@ Updated as providers are added.
 | Provider | Status | Callback path | Scope |
 | --- | --- | --- | --- |
 | Google | ✅ Supported (v1) | `/oauth2` | Gmail: send + read-only + userinfo (see below) |
+| Yahoo | ⏳ Pending — Mail API access requested, awaiting Yahoo approval | `/oauth2` | — |
 
 ## Gmail scopes (email)
 
