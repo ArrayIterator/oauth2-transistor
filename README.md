@@ -23,6 +23,15 @@ only validates the `state` and forwards the browser on.
    and exchanges the code with Google directly, using its own PKCE verifier.
    The forwarder never sees the tokens.
 
+## Who can use it
+
+Anyone. There is no registration, no API key, and no per-site setup:
+any WordPress site running a compatible plugin can use
+`https://transistor.pentagonal.org` as its forwarder. The relay itself
+needs only its own deployment config (`wrangler.toml`: the domain) and
+the one shared Google client — nothing per site, no database, no key
+management.
+
 ## No provider field
 
 Version 1 is Google-only. There is no `provider` field in the state. If a
