@@ -38,9 +38,6 @@ public/
   site.css               # shared styles for the public pages
   privacy.html           # privacy policy (English, default)
   terms.html             # terms of service (English, default)
-  id/
-    privacy.html         # kebijakan privasi (Bahasa Indonesia)
-    terms.html           # syarat layanan (Bahasa Indonesia)
   error.html             # minimal error page (design pending logo asset)
   error.css
   pentagonal-logo.svg    # pending — logo file not in the repo yet
@@ -50,8 +47,7 @@ docs/
 ```
 
 Legal pages: `https://transistor.pentagonal.org/privacy` and
-`/terms` (English by default; `/id/privacy` and `/id/terms` in Bahasa
-Indonesia). The privacy policy URL is the one Google's OAuth verification
+`/terms` (English). The privacy policy URL is the one Google's OAuth verification
 asks for.
 
 ## Deploy

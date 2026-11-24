@@ -37,12 +37,9 @@ GET only):
 | --- | --- |
 | `GET /privacy` | `public/privacy.html` (English, default) |
 | `GET /terms` | `public/terms.html` (English, default) |
-| `GET /id/privacy` | `public/id/privacy.html` (Bahasa Indonesia) |
-| `GET /id/terms` | `public/id/terms.html` (Bahasa Indonesia) |
 | `GET /site.css` | `public/site.css` (shared styles) |
 
-Each page links to its counterpart in the other language. The privacy
-policy URL (`https://transistor.pentagonal.org/privacy`) is the one
+The privacy policy URL (`https://transistor.pentagonal.org/privacy`) is the one
 submitted to Google for OAuth verification.
 
 ## 3. State format (v5)
