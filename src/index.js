@@ -258,38 +258,75 @@ async function errorResponse(env, request, status) {
  * when the file does not exist (caller turns that into the 404 error
  * page) or when no assets binding is configured.
  *
- * Extensionless page URLs (/about, /privacy, /terms) map to their .html
- * files — the asset store only has the .html files, so a bare /terms
- * lookup would 404 without this.
+ * Friendly page URLs (/about, /privacy, /terms) 301-redirect to their
+ * .html files — the .html URL is the canonical one. The home page /
+ * serves public/index.html directly (no redirect to /index.html).
  */
 async function serveStatic(env, request) {
   const url = new URL(request.url);
-  const candidates = [url.pathname];
+  const pathname = url.pathname;
+
   // The home page: / serves public/index.html.
-  if (url.pathname === '/') {
-    candidates.push('/index.html');
-  } else if (!url.pathname.includes('.') && !url.pathname.endsWith('/')) {
-    // Extensionless page URLs (/about, /privacy, /terms) map to their
-    // .html files — the asset store only has the .html files, so a bare
-    // /terms lookup would 404 without this.
-    candidates.push(url.pathname + '.html');
+  if (pathname === '/') {
+    return fetchAsset(env, request, '/index.html');
   }
-  for (const path of candidates) {
-    let res;
-    try {
-      res = await env.ASSETS.fetch(
-        new Request(new URL(path, request.url), { method: 'GET' }),
-      );
-    } catch {
-      return null;
+
+  // Friendly page URL: if the .html file exists, 301 to it; if it does
+  // not exist, this is a genuine 404 (caller handles it).
+  if (!pathname.includes('.') && !pathname.endsWith('/')) {
+    const htmlPath = pathname + '.html';
+    const exists = await assetExists(env, request, htmlPath);
+    if (exists) {
+      return redirectPermanent(new URL(htmlPath, request.url).toString());
     }
-    if (res && res.status !== 404) {
-      const headers = new Headers(res.headers);
-      headers.set('X-Robots-Tag', ROBOTS_TAG);
-      return new Response(res.body, { status: res.status, headers });
-    }
+    return null;
   }
-  return null;
+
+  return fetchAsset(env, request, pathname);
+}
+
+/** Fetch one asset path. Returns the response, or null if not found. */
+async function fetchAsset(env, request, path) {
+  let res;
+  try {
+    res = await env.ASSETS.fetch(
+      new Request(new URL(path, request.url), { method: 'GET' }),
+    );
+  } catch {
+    return null;
+  }
+  if (!res || res.status === 404) {
+    return null;
+  }
+  const headers = new Headers(res.headers);
+  headers.set('X-Robots-Tag', ROBOTS_TAG);
+  return new Response(res.body, { status: res.status, headers });
+}
+
+/** True when the asset path exists (status anything but 404). */
+async function assetExists(env, request, path) {
+  let res;
+  try {
+    res = await env.ASSETS.fetch(
+      new Request(new URL(path, request.url), { method: 'GET' }),
+    );
+  } catch {
+    return false;
+  }
+  return !!res && res.status !== 404;
+}
+
+/** 301 to the canonical URL. Never cached (the target may change). */
+function redirectPermanent(location) {
+  return new Response(null, {
+    status: 301,
+    headers: {
+      Location: location,
+      'Cache-Control': NO_STORE,
+      Pragma: 'no-cache',
+      'X-Robots-Tag': ROBOTS_TAG,
+    },
+  });
 }
 
 /** base64url → UTF-8 string. Throws on bad alphabet or bad UTF-8. */

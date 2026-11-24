@@ -16,8 +16,8 @@ compatibility_date = "2026-11-24"
 directory = "./public"
 not_found_handling = "none"
 
-# Custom domain — the trust anchor users see. The Worker is also
-# reachable on its workers.dev URL for testing before this is attached.
-[[routes]]
-pattern = "transistor.pentagonal.org"
-zone_name = "pentagonal.org"
+# Custom domain — the trust anchor users see. Reachable via the DNS
+# CNAME transistor.pentagonal.org → transistor.nwm-643.workers.dev
+# (same pattern as muse-licensing: NO [[routes]] here — a route plus
+# the CNAME made Cloudflare 522). The Worker is also reachable on
+# its workers.dev URL for testing.
