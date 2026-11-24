@@ -7,17 +7,18 @@ without every site registering its own Google Cloud OAuth client. The
 forwarder holds **no tokens, no codes, no sessions, and no database** — it
 only validates the `state` and forwards the browser on.
 
-> **Status:** Worker built (`src/index.js`) and verified locally
-> (61 checks: happy path, error path, all validation failures,
-> open-redirect attempts, 404/405, statics). Not deployed yet —
-> `transistor.pentagonal.org` is not live until `npx wrangler deploy`.
+> **Status:** Deployed and verified live at
+> `https://transistor.pentagonal.org` (Worker version `70e8817f`).
+> The Google client for this project is set up for **email (Gmail)** —
+> see [Gmail scopes](#gmail-scopes-email) below.
 
 ## How it works
 
 1. The plugin builds a `state` (base64url JSON, see `docs/spec.md`) and
    redirects the user to Google's authorization endpoint. The `redirect_uri`
    is the forwarder: `https://transistor.pentagonal.org/oauth2`.
-2. The user signs in and allows the app (scope: `gmail.send` only).
+2. The user signs in and allows the app (Gmail scopes — see
+   [Gmail scopes](#gmail-scopes-email)).
 3. Google redirects back to the forwarder with `code` + `state`
    (or `error` + `state` if the user denies).
 4. The forwarder validates the state and issues an HTTP 302 to the site's
@@ -50,9 +51,32 @@ Updated as providers are added.
 
 | Provider | Status | Callback path | Scope |
 | --- | --- | --- | --- |
-| Google | ✅ Supported (v1) | `/oauth2` | `gmail.send` |
+| Google | ✅ Supported (v1) | `/oauth2` | Gmail: send + read-only + userinfo (see below) |
 | Microsoft | Planned | `/oauth2` | — |
 | Yahoo | Planned | `/oauth2` | — |
+
+## Gmail scopes (email)
+
+The Google client for this project (`oauth2-transistor`) is set up
+specifically for **email (Gmail)**. These are the 4 scopes registered
+on its consent screen (Google Auth Platform → Data Access):
+
+| Scope | What it allows | Google class |
+| --- | --- | --- |
+| `https://www.googleapis.com/auth/userinfo.email` | See the user's primary Google Account email address | Non-sensitive |
+| `https://www.googleapis.com/auth/userinfo.profile` | See the user's personal info | Non-sensitive |
+| `https://www.googleapis.com/auth/gmail.send` | Send email on the user's behalf | Sensitive |
+| `https://www.googleapis.com/auth/gmail.readonly` | View the user's email messages and settings | Restricted |
+
+Together they cover a basic webmail: identify the user
+(`userinfo.email` + `userinfo.profile`), read the inbox
+(`gmail.readonly`), and send mail (`gmail.send`). The forwarder
+itself is scope-agnostic — it never reads or checks scopes; these
+are the scopes this Google client requests.
+
+Note: `gmail.readonly` is a **restricted** scope, so opening this
+client to the public requires completing Google's verification
+process. Until then only listed test users can sign in.
 
 ## Repo layout
 
