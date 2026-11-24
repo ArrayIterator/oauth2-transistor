@@ -1,0 +1,23 @@
+# Transistor — OAuth2 forwarder (Cloudflare Worker)
+# Spec: docs/spec.md (spec v1, state format v5)
+#
+# Deploy: npx wrangler deploy
+# (or paste src/index.js in the Cloudflare dashboard and attach the
+#  custom domain transistor.pentagonal.org manually)
+
+name = "transistor"
+main = "src/index.js"
+compatibility_date = "2026-11-24"
+
+# Static files served from public/ (legal pages, error page, logo,
+# robots.txt). The Worker handles /oauth2 itself and delegates every
+# other path to these assets; unknown paths get the error page (404).
+[assets]
+directory = "./public"
+not_found_handling = "none"
+
+# Custom domain — the trust anchor users see. The Worker is also
+# reachable on its workers.dev URL for testing before this is attached.
+[[routes]]
+pattern = "transistor.pentagonal.org"
+zone_name = "pentagonal.org"
