@@ -304,12 +304,22 @@ async function assetExists(env, request, path) {
  * of an .html file comes back 301, not 200 — follow it once to get
  * the file's content. Returns null when the binding is missing or
  * the fetch fails.
+ *
+ * The fetch URL uses a fixed dummy origin (https://assets.local),
+ * NEVER request.url: the binding serves purely by path, and using
+ * the real host is a bug — on a custom domain the edge can route
+ * that host back into the Worker, so following the asset store's
+ * clean-URL redirect (/terms.html -> /terms) re-enters the Worker
+ * and loops until Cloudflare times out (522). The dummy origin can
+ * never route anywhere, so the fetch stays inside the binding.
  */
+const ASSETS_ORIGIN = 'https://assets.local';
+
 async function fetchAssetRaw(env, request, path) {
   let res;
   try {
     res = await env.ASSETS.fetch(
-      new Request(new URL(path, request.url), { method: 'GET' }),
+      new Request(new URL(path, ASSETS_ORIGIN), { method: 'GET' }),
     );
   } catch {
     return null;
@@ -319,7 +329,7 @@ async function fetchAssetRaw(env, request, path) {
     if (location) {
       try {
         const next = await env.ASSETS.fetch(
-          new Request(new URL(location, request.url), { method: 'GET' }),
+          new Request(new URL(location, ASSETS_ORIGIN), { method: 'GET' }),
         );
         if (next) {
           res = next;
