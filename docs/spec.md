@@ -24,7 +24,6 @@ on it.
 | --- | --- |
 | `GET /google/callback` | The `redirect_uri` registered with Google. The only live endpoint in v1. |
 | `GET /<provider>/callback` | Reserved pattern for a future provider (e.g. `/microsoft/callback`). Not implemented. |
-| `GET /health` | Liveness probe. Returns HTTP 200 with body `ok`. No validation, no state, no logging. |
 
 Any other path → the error page with HTTP 404. Any non-GET request →
 the error page with HTTP 405.
@@ -267,7 +266,7 @@ any of those would change the trust model and is out of scope for v1.
 Nothing on this service is meant to be indexed or cached:
 
 - `public/robots.txt` disallows the functional paths (`/google/`,
-  `/microsoft/`, `/yahoo/`, `/health`). It deliberately does **not** disallow the
+  `/microsoft/`, `/yahoo/`). It deliberately does **not** disallow the
   public pages — a blanket `Disallow` would prevent crawlers from ever
   fetching them, which would hide the `noindex` tag from the very
   crawlers it is addressed to.
