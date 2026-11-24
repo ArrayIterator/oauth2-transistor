@@ -31,6 +31,14 @@ run_worker_first = true
 
 # Custom domain — the trust anchor users see. Reachable via the DNS
 # CNAME transistor.pentagonal.org → transistor.nwm-643.workers.dev
-# (same pattern as muse-licensing: NO [[routes]] here — a route plus
-# the CNAME made Cloudflare 522). The Worker is also reachable on
-# its workers.dev URL for testing.
+# (same pattern as muse-licensing). This is a `custom_domain` route,
+# NOT a wildcard [[routes]] pattern: the old
+# `pattern = "transistor.pentagonal.org/*"` route plus the CNAME made
+# Cloudflare 522. The custom_domain route is the modern way to attach
+# a domain to a Worker with Static Assets, and it is REQUIRED — with
+# only the DNS CNAME and no route, the asset store serves `/` directly
+# but Worker-invoked paths (/oauth2, /terms, /nope) 522 because the
+# Worker is not bound to the custom domain for them.
+routes = [
+  { pattern = "transistor.pentagonal.org", custom_domain = true },
+]
