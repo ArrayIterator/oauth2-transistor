@@ -49,6 +49,7 @@ public/
   about.html             # about the service (English)
   privacy.html           # privacy policy (English)
   terms.html             # terms of service (English)
+  robots.txt             # disallows callback paths; public pages noindex via meta + header
   error.html             # minimal error page (design pending logo asset)
   error.css
   pentagonal-logo.svg    # pending — logo file not in the repo yet

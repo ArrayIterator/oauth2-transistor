@@ -1,0 +1,11 @@
+# transistor.pentagonal.org — OAuth2 forwarder
+# The callback endpoints are functional URLs, not content — never crawl
+# them. The public pages (/about, /privacy, /terms) are crawlable but
+# carry noindex (meta tag + X-Robots-Tag on every response), so nothing
+# here is indexed. A blanket Disallow would hide the noindex tag from
+# crawlers, which is why only the callback paths are disallowed.
+User-agent: *
+Disallow: /google/
+Disallow: /microsoft/
+Disallow: /yahoo/
+Allow: /

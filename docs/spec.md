@@ -145,6 +145,14 @@ Rules:
   stores, or logs the `code`. Codes are single-use secrets.
 - The forwarder **never stores anything**: no sessions, no database, no
   cookies. Every request is validated from the state alone.
+- **No caching, ever.** The 302 response carries
+  `Cache-Control: no-store, no-cache, must-revalidate` and
+  `Pragma: no-cache`. The redirect URL carries a single-use code and a
+  state — it must never be cached by a browser, a proxy, or a CDN. A
+  cached 302 could leak the code or break the flow on back-button/replay.
+- **No indexing.** Every response (302, error page, static pages) carries
+  `X-Robots-Tag: noindex, noarchive, noodp, noydir`. The public HTML
+  pages also carry the equivalent `<meta name="robots">` tag.
 
 ## 6. Error page
 
@@ -157,6 +165,9 @@ when validation fails (§4) or the path is unknown (§2).
   authorization request. Please start again from your WordPress admin."
 - **No detail** about which check failed — a specific message would give
   an attacker a probe oracle.
+- Headers: `Cache-Control: no-store, no-cache, must-revalidate`,
+  `Pragma: no-cache`, `X-Robots-Tag: noindex, noarchive, noodp, noydir`
+  (see §5), plus the `<meta name="robots">` tag in the HTML.
 - Branding: Pentagonal logo (`public/pentagonal-logo.svg`) — asset pending;
   the page design is tracked separately and is not part of this spec.
 
@@ -250,7 +261,26 @@ any of those would change the trust model and is out of scope for v1.
   Deploy with `npx wrangler deploy` or by pasting `src/index.js` in the
   Cloudflare dashboard.
 
-## 12. Versioning
+## 12. Search engines & caching
+
+Nothing on this service is meant to be indexed or cached:
+
+- `public/robots.txt` disallows the callback paths (`/google/`,
+  `/microsoft/`, `/yahoo/`). It deliberately does **not** disallow the
+  public pages — a blanket `Disallow` would prevent crawlers from ever
+  fetching them, which would hide the `noindex` tag from the very
+  crawlers it is addressed to.
+- Every response carries
+  `X-Robots-Tag: noindex, noarchive, noodp, noydir`. The public HTML
+  pages also carry the `<meta name="robots">` tag with the same value.
+  (`noodp`/`noydir` are legacy directives — the directories they refer
+  to no longer exist — but they are harmless and included as requested.)
+- The 302 and the error page carry `Cache-Control: no-store, no-cache,
+  must-revalidate` + `Pragma: no-cache` (§5, §6). Static pages
+  (`/about`, `/privacy`, `/terms`, `/site.css`, `/robots.txt`) may be
+  cached normally by browsers and CDNs.
+
+## 13. Versioning
 
 - The **state format** is versioned by the `v` field. A new state version
   means a new `v` value; the forwarder must keep accepting the previous
