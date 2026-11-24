@@ -2,7 +2,7 @@
 
 **Spec version:** 1 (2026-11-24)
 **State format version:** 5
-**Status:** Worker built (`src/index.js`) and verified locally; not deployed yet
+**Status:** Worker built (`src/index.js`), verified locally (56/56) and verified LIVE on transistor.pentagonal.org 2026-11-24 ~10:55 WIB — /oauth2 302s, /terms 301s to /terms.html, /terms.html 200, /nope styled 404, home loads. Deployed version 70e8817f (commit 141cbd2).
 
 This document is the contract for the forwarder. The plugin side
 (TrayDigita Mailer, Gmail provider) implements the other half; anything
