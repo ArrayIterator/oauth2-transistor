@@ -328,8 +328,14 @@ async function fetchAssetRaw(env, request, path) {
     const location = res.headers.get('Location');
     if (location) {
       try {
+        // Use ONLY the pathname of the redirect target. The Location
+        // may be an absolute URL carrying the real host — feeding that
+        // back into the binding would re-enter the edge and loop.
+        // The binding serves purely by path, so the dummy origin plus
+        // the bare pathname is all it ever needs.
+        const nextPath = new URL(location, ASSETS_ORIGIN).pathname;
         const next = await env.ASSETS.fetch(
-          new Request(new URL(location, ASSETS_ORIGIN), { method: 'GET' }),
+          new Request(new URL(nextPath, ASSETS_ORIGIN), { method: 'GET' }),
         );
         if (next) {
           res = next;
