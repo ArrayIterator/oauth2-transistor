@@ -13,9 +13,9 @@ on it.
 
 | Actor | Role |
 | --- | --- |
-| Plugin (WordPress site) | Starts the flow, holds the PKCE verifier, validates the returned state, exchanges the code for tokens. |
+| App (any application) | Starts the flow, holds the PKCE verifier, validates the returned state, exchanges the code for tokens. |
 | Google | Authorization server. Issues the code, returns `state` verbatim. |
-| Forwarder (this repo) | The `redirect_uri` registered with Google. Validates the state, forwards the browser to the site. Holds nothing. |
+| Forwarder (this repo) | The `redirect_uri` registered with Google. Validates the state, forwards the browser to the app. Holds nothing. |
 | Browser | Carries the user through Google and back. |
 
 ## 2. Endpoints
@@ -58,7 +58,7 @@ the forwarder decodes it and reads proper named fields.
   "v": 1,
   "n": "9f2c4a1e7b8d0a3f5c6e9d1a2b3c4d5e",
   "exp": 1732425600,
-  "u": "https://example.com/wp-admin/admin-post.php?action=traydigita_mailer_gmail_callback",
+  "u": "https://app.example.com/auth/callback",
   "s": "a3f9c2...64 hex chars"
 }
 ```
@@ -110,16 +110,16 @@ the error page (§6). No redirect, no forward.**
 2. `v` is the number `1`.
 3. `n` matches `/^[0-9a-f]{32}$/`.
 4. `exp` is a number and `exp > now` (seconds).
-5. `u` matches the strict callback pattern:
-   - scheme `https`,
-   - any host,
-   - path exactly `/wp-admin/admin-post.php`,
-   - query contains `action=traydigita_mailer_gmail_callback`.
+5. `u` is a valid callback URL: scheme `https`, any host, any path,
+   any query. No app-specific path or action is required — Transistor
+   is global. The app that built the state decides where to return to;
+   the forwarder just reads `u` out of the decoded JSON state and
+   forwards there. The `https` requirement is the only transport rule.
 6. `s` equals `HMAC-SHA-256(key = n, message = u)`, compared in constant
    time where the runtime allows.
 
 The forwarder does **not** check whether the nonce was ever issued — it
-has no database and no memory. The plugin does that check on return (§8).
+has no database and no memory. The app does that check on return (§8).
 
 ## 5. Forwarding
 
@@ -170,7 +170,7 @@ is a pure HTTP 302. The only body it ever returns is the error page
   (`{{ERROR_CODE}}` / `{{ERROR_TITLE}}` / `{{ERROR_MESSAGE}}`
   placeholders):
   - 400: "Something went wrong" / "Invalid or expired authorization
-    request. Please start again from your WordPress admin."
+    request. Please start again from the application that sent you here."
   - 404: "Page not found" / "The page you are looking for does not
     exist. If you followed a link here, it may be outdated."
   - 405: "Method not allowed" / "This service only accepts GET requests."
@@ -206,7 +206,7 @@ not in this repo.)
 - Generate `n` (16 random bytes → 32 hex chars) and `exp` (`now + 600`)
   per flow; compute `s`; build the state.
 - Generate a PKCE `code_verifier` + `code_challenge` (S256) per flow.
-- Store the pending flow server-side (e.g. a WordPress transient) keyed by
+- Store the pending flow server-side (e.g. a session store or transient) keyed by
   `n`: the PKCE verifier and the issuing admin context.
 - Build the Google authorization URL with `client_id` (shared relay
   client), `redirect_uri` = `https://transistor.pentagonal.org/oauth2`,
@@ -293,9 +293,9 @@ protects anything in this design.
 | Corrupted / mangled state | §3.1 checksum + JSON parse + strict field validation. |
 | Replayed / stale state | `exp` (10 min) + plugin nonce check (§8). |
 | Stolen authorization code | PKCE — the code is useless without the verifier, held only by the plugin that started the flow. |
-| Forged state | **Not prevented.** The state carries its own key, so anyone can build a valid-looking one. The damage is bounded: the forwarder only redirects to a wp-admin callback URL, and the plugin rejects any nonce it never issued. |
+| Forged state | **Not prevented.** The state carries its own key, so anyone can build a valid-looking one. The damage is bounded: the forwarder only redirects to an `https` URL, and the app rejects any nonce it never issued (so a forged state carries no usable code). A forged state can still bounce a victim's browser to an arbitrary `https` URL — the app must never trust a return it did not start. |
 | Token theft through the forwarder | **Impossible by construction.** The forwarder never receives, stores, or exchanges tokens. |
-| Phishing (victim bounced to a fake page, or tricked into authorizing the shared app) | **Residual risk, accepted.** The consent screen shows the shared app name; users should only authorize a flow they started from their own WordPress admin. |
+| Phishing (victim bounced to a fake page, or tricked into authorizing the shared app) | **Residual risk, accepted.** The consent screen shows the shared app name; users should only authorize a flow they started from their own app. |
 
 What this design deliberately does **not** have: shared secrets, per-site
 keys, key registration, a database, sessions, or server-side state. Adding

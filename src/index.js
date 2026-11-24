@@ -1,15 +1,17 @@
 /**
  * Transistor — OAuth2 forwarder (Cloudflare Worker).
  *
- * One job: be the redirect_uri Google sends the browser back to, validate
- * the state, and forward the browser to the WordPress site that started
- * the flow. It holds no tokens, no codes, no sessions, no database.
+ * One job: be the redirect_uri the identity provider sends the browser
+ * back to, validate the state, and forward the browser to the
+ * application that started the flow. It holds no tokens, no codes, no
+ * sessions, no database. It is provider- and app-agnostic: any app
+ * that can build a state (spec §3) can use it, WordPress or not.
  *
  * Contract: docs/spec.md (spec v1, state format v5).
  *
  * Endpoints:
  *   GET /oauth2   — the only live endpoint. Validates state, 302s to the
- *                    site's fallback callback URL with code (or error)
+ *                    app's callback URL with code (or error)
  *                    + the full state, verbatim.
  *   GET /, /about, /privacy, /terms, /robots.txt, ... — static files
  *                    served from public/ via the assets binding.
@@ -25,8 +27,6 @@
 
 const ROBOTS_TAG = 'noindex, noarchive, noodp, noydir';
 const NO_STORE = 'no-store, no-cache, must-revalidate';
-const CALLBACK_ACTION = 'traydigita_mailer_gmail_callback';
-const CALLBACK_PATH = '/wp-admin/admin-post.php';
 const NONCE_RE = /^[0-9a-f]{32}$/;
 
 // What the error page says, per status. The 400 message stays generic
@@ -38,7 +38,7 @@ const ERROR_PAGES = {
     title: 'Something went wrong',
     message:
       'Invalid or expired authorization request. ' +
-      'Please start again from your WordPress admin.',
+      'Please start again from the application that sent you here.',
   },
   404: {
     code: '404',
@@ -64,7 +64,7 @@ const MINIMAL_ERROR_HTML =
   '<title>Something went wrong — Transistor</title></head>' +
   '<body><h1>Something went wrong</h1>' +
   '<p>Invalid or expired authorization request. ' +
-  'Please start again from your WordPress admin.</p></body></html>';
+  'Please start again from the application that sent you here.</p></body></html>';
 
 export default {
   async fetch(request, env, ctx) {
@@ -89,8 +89,8 @@ export default {
 };
 
 /**
- * GET /oauth2 — the redirect_uri registered with Google.
- * Validates the state (spec §4), then 302s to the site's callback URL
+ * GET /oauth2 — the redirect_uri registered with the provider.
+ * Validates the state (spec §4), then 302s to the app's callback URL
  * with the code (or error) and the full state, verbatim (spec §5).
  */
 async function handleOAuth2(env, request, url) {
@@ -105,7 +105,7 @@ async function handleOAuth2(env, request, url) {
     return errorResponse(env, request, 400);
   }
 
-  // Success: Google issued a code.
+  // Success: the provider issued a code.
   if (code) {
     const target = new URL(valid.u);
     target.searchParams.set('code', code);
@@ -113,8 +113,8 @@ async function handleOAuth2(env, request, url) {
     return redirectResponse(target.toString());
   }
 
-  // Google error (e.g. the user declined consent): forward it as-is and
-  // let the plugin show a friendly message.
+  // Provider error (e.g. the user declined consent): forward it as-is and
+  // let the app show a friendly message.
   if (error) {
     const target = new URL(valid.u);
     target.searchParams.set('error', error);
@@ -164,14 +164,18 @@ async function validateState(state) {
     return { ok: false };
   }
 
-  // u must be an https callback URL for a WordPress admin-post action.
+  // u must be an https callback URL. No app-specific path or action is
+  // required — Transistor is global: any app (WordPress, a plain web
+  // app, a mobile backend) can point the state at its own callback.
+  // The state HMAC is a corruption checksum, not tamper protection,
+  // so the real guard is the app's own state/nonce check on return.
   if (typeof payload.u !== 'string' || !isValidCallbackUrl(payload.u)) {
     return { ok: false };
   }
 
   // s must be the HMAC-SHA-256 of u, keyed by n (spec §3.1). The sign is
   // a corruption checksum, not tamper protection — anyone holding the
-  // state can recompute it. Real authenticity comes from the plugin's
+  // state can recompute it. Real authenticity comes from the app's
   // own nonce check plus PKCE.
   if (typeof payload.s !== 'string') {
     return { ok: false };
@@ -185,9 +189,10 @@ async function validateState(state) {
 }
 
 /**
- * Strict callback-URL pattern (spec §4, check 5): https, any host, path
- * exactly /wp-admin/admin-post.php, query action=traydigita_mailer_gmail_callback.
- * This is what stops the forwarder being used as an open redirect.
+ * Callback-URL check (spec §4): any https URL with a hostname. No
+ * app-specific path, action or host is required — Transistor is a
+ * global forwarder, not a WordPress/TrayDigita-only one. The https
+ * requirement is the only transport rule (no plain-http callbacks).
  */
 function isValidCallbackUrl(u) {
   let parsed;
@@ -199,10 +204,7 @@ function isValidCallbackUrl(u) {
   if (parsed.protocol !== 'https:') {
     return false;
   }
-  if (parsed.pathname !== CALLBACK_PATH) {
-    return false;
-  }
-  return parsed.searchParams.get('action') === CALLBACK_ACTION;
+  return parsed.hostname.length > 0;
 }
 
 /** 302 to the site. Never cached — the URL carries a single-use code. */
