@@ -200,6 +200,10 @@ not in this repo.)
   request goes directly browser → Google; the forwarder is not involved
   until Google redirects back to it (§4). The forwarder never proxies,
   inspects, or touches the sign-in itself — it only sees the return trip.
+  The consent screen Google shows (app name, logo) comes from this
+  client's registration, looked up by `client_id` in the authorization
+  URL. The forwarder sends nothing to Google and cannot change what the
+  consent screen shows — Google renders it from its own registration.
   `scope` = `https://www.googleapis.com/auth/gmail.send` only,
   `response_type=code`, `access_type=offline`, `prompt=consent`,
   `state`, `code_challenge`, `code_challenge_method=S256`.
@@ -235,6 +239,17 @@ redirect URI (`https://transistor.pentagonal.org/oauth2`); the
 forwarder does not know or care which `client_id` was used — it only
 validates the state and forwards. The plugin picks the client per
 purpose.
+
+**App name vs scopes.** The consent screen (app name, logo, declared
+scope list) is configured **per Google Cloud project**, not per
+client: every client in one project shares the same app name. That is
+fine — the consent screen a user actually sees shows only the scopes
+requested in that authorization request (`scope=`), so client A can
+show "send mail" while client B shows "read mail" under the same app
+name. The declared scope list on the consent screen must be the union
+of all scopes used across clients (it is what Google verifies). A
+different app name per purpose needs a **separate project** per
+purpose — and each project is verified by Google separately.
 
 Costs of splitting clients: each client has its own consent screen and
 is verified by Google **separately** (sensitive scopes take days to
