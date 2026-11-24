@@ -8,4 +8,5 @@ User-agent: *
 Disallow: /google/
 Disallow: /microsoft/
 Disallow: /yahoo/
+Disallow: /health
 Allow: /
