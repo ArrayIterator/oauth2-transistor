@@ -196,6 +196,10 @@ not in this repo.)
   `n`: the PKCE verifier and the issuing admin context.
 - Build the Google authorization URL with `client_id` (shared relay
   client), `redirect_uri` = `https://transistor.pentagonal.org/google/callback`,
+  and redirect the user's browser straight to Google. The authorization
+  request goes directly browser → Google; the forwarder is not involved
+  until Google redirects back to it (§4). The forwarder never proxies,
+  inspects, or touches the sign-in itself — it only sees the return trip.
   `scope` = `https://www.googleapis.com/auth/gmail.send` only,
   `response_type=code`, `access_type=offline`, `prompt=consent`,
   `state`, `code_challenge`, `code_challenge_method=S256`.
