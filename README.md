@@ -29,6 +29,16 @@ Version 1 is Google-only. There is no `provider` field in the state. If a
 second provider is ever added, it gets its own path
 (`https://transistor.pentagonal.org/microsoft/callback`), not a field in the state.
 
+## Supported providers
+
+Updated as providers are added.
+
+| Provider | Status | Callback path | Scope |
+| --- | --- | --- | --- |
+| Google | ✅ Supported (v1) | `/google/callback` | `gmail.send` |
+| Microsoft | Planned | `/microsoft/callback` | — |
+| Yahoo | Planned | `/yahoo/callback` | — |
+
 ## Repo layout
 
 ```
