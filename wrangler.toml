@@ -12,9 +12,16 @@ compatibility_date = "2026-11-24"
 # Static files served from public/ (legal pages, error page, logo,
 # robots.txt). The Worker handles /oauth2 itself and delegates every
 # other path to these assets; unknown paths get the error page (404).
+# run_worker_first = true is REQUIRED: without it Cloudflare serves a
+# matching static asset before the Worker runs, so the Worker's
+# redirects and 404 page never execute (the asset store also
+# canonicalises .html URLs to clean URLs, the opposite of what we
+# want). With it, every request goes through the Worker first and the
+# code below decides what to serve.
 [assets]
 directory = "./public"
 not_found_handling = "none"
+run_worker_first = true
 
 # Custom domain — the trust anchor users see. Reachable via the DNS
 # CNAME transistor.pentagonal.org → transistor.nwm-643.workers.dev

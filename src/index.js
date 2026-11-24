@@ -228,20 +228,13 @@ async function errorResponse(env, request, status) {
   const page = ERROR_PAGES[status] ?? ERROR_PAGES[400];
   let body = null;
   let contentType = 'text/html; charset=utf-8';
-  try {
-    const assetRes = await env.ASSETS.fetch(
-      new Request(new URL('/error.html', request.url), { method: 'GET' }),
-    );
-    if (assetRes.ok) {
-      body = (await assetRes.text())
-        .replaceAll('{{ERROR_CODE}}', page.code)
-        .replaceAll('{{ERROR_TITLE}}', page.title)
-        .replaceAll('{{ERROR_MESSAGE}}', page.message);
-      contentType =
-        assetRes.headers.get('Content-Type') || contentType;
-    }
-  } catch {
-    // No assets binding (or asset fetch failed) — use the inline page.
+  const assetRes = await fetchAssetRaw(env, request, '/error.html');
+  if (assetRes && assetRes.ok) {
+    body = (await assetRes.text())
+      .replaceAll('{{ERROR_CODE}}', page.code)
+      .replaceAll('{{ERROR_TITLE}}', page.title)
+      .replaceAll('{{ERROR_MESSAGE}}', page.message);
+    contentType = assetRes.headers.get('Content-Type') || contentType;
   }
 
   const headers = new Headers({
@@ -287,14 +280,7 @@ async function serveStatic(env, request) {
 
 /** Fetch one asset path. Returns the response, or null if not found. */
 async function fetchAsset(env, request, path) {
-  let res;
-  try {
-    res = await env.ASSETS.fetch(
-      new Request(new URL(path, request.url), { method: 'GET' }),
-    );
-  } catch {
-    return null;
-  }
+  const res = await fetchAssetRaw(env, request, path);
   if (!res || res.status === 404) {
     return null;
   }
@@ -305,15 +291,43 @@ async function fetchAsset(env, request, path) {
 
 /** True when the asset path exists (status anything but 404). */
 async function assetExists(env, request, path) {
+  const res = await fetchAssetRaw(env, request, path);
+  return !!res && res.status !== 404;
+}
+
+/**
+ * Fetch an asset from the assets binding, following one redirect if
+ * the asset store answers with one. The store canonicalises .html
+ * URLs to clean URLs (e.g. /terms.html -> /terms), so a plain fetch
+ * of an .html file comes back 301, not 200 — follow it once to get
+ * the file's content. Returns null when the binding is missing or
+ * the fetch fails.
+ */
+async function fetchAssetRaw(env, request, path) {
   let res;
   try {
     res = await env.ASSETS.fetch(
       new Request(new URL(path, request.url), { method: 'GET' }),
     );
   } catch {
-    return false;
+    return null;
   }
-  return !!res && res.status !== 404;
+  if (res && res.status >= 300 && res.status < 400) {
+    const location = res.headers.get('Location');
+    if (location) {
+      try {
+        const next = await env.ASSETS.fetch(
+          new Request(new URL(location, request.url), { method: 'GET' }),
+        );
+        if (next) {
+          res = next;
+        }
+      } catch {
+        // Keep the redirect response; the caller decides.
+      }
+    }
+  }
+  return res;
 }
 
 /** 301 to the canonical URL. Never cached (the target may change). */
