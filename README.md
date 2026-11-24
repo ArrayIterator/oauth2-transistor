@@ -117,15 +117,16 @@ No build step, no npm dependencies — plain JavaScript + static files.
 - With Wrangler: `npx wrangler deploy`
 - Or paste `src/index.js` in the Cloudflare dashboard.
 
-## Analytics (optional)
+## Analytics (Google Tag Manager)
 
-Set `ANALYTICS_ID` in `wrangler.toml` `[vars]` to a Google Analytics 4
-measurement ID (`G-...`) and the Worker injects the gtag.js snippet
-into `<head>` of every HTML page it serves (home, about, privacy,
-terms, error page). Empty or missing = no snippet, pages served as-is.
-The ID is public (it ships in the page source), so it is a plain var,
-not a secret. Non-HTML assets (images, robots.txt) are never touched,
-and the `/oauth2` redirect is unaffected.
+Set `GTM_ID` in `wrangler.toml` `[vars]` to a GTM container ID
+(`GTM-...`) and the Worker injects the Google Tag Manager snippet
+into `<head>` (plus the `<noscript>` fallback after `<body>`) of
+every HTML page it serves (home, about, privacy, terms, error page).
+Empty or missing = no snippet, pages served as-is. The ID is public
+(it ships in the page source), so it is a plain var, not a secret.
+Non-HTML assets (images, robots.txt) are never touched, and the
+`/oauth2` redirect is unaffected.
 
 ## Security model (short version)
 

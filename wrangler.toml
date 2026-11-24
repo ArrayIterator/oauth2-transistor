@@ -50,11 +50,12 @@ binding = "ASSETS"
 not_found_handling = "none"
 run_worker_first = true
 
-# Analytics (optional). Set ANALYTICS_ID to a Google Analytics 4
-# measurement ID (G-...) and the Worker injects the gtag.js snippet
-# into <head> of every HTML page it serves (home, about, privacy,
-# terms, error). Empty/missing = no snippet, pages served as-is.
-# The ID is public (it ships in the page source), so it is a plain
-# var here, not a secret. Change it and redeploy (push to GitHub).
+# Analytics (Google Tag Manager). Set GTM_ID to a GTM container ID
+# (GTM-...) and the Worker injects the GTM snippet into <head>
+# (plus the <noscript> fallback after <body>) of every HTML page
+# it serves (home, about, privacy, terms, error). Empty/missing =
+# no snippet, pages served as-is. The ID is public (it ships in the
+# page source), so it is a plain var here, not a secret. Change it
+# and redeploy (push to GitHub).
 [vars]
-ANALYTICS_ID = ""
+GTM_ID = "GTM-5WJNQRMN"

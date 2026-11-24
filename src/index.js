@@ -292,9 +292,9 @@ async function fetchAsset(env, request, path) {
   const contentType = res.headers.get('Content-Type') || '';
   const headers = new Headers(res.headers);
   headers.set('X-Robots-Tag', ROBOTS_TAG);
-  // HTML pages get the analytics snippet in <head> when an
-  // ANALYTICS_ID is configured (env var); anything else (images,
-  // robots.txt, ...) is served untouched.
+  // HTML pages get the GTM snippet in <head> when a GTM_ID is
+  // configured (env var); anything else (images, robots.txt, ...)
+  // is served untouched.
   if (contentType.includes('text/html')) {
     const html = await res.text();
     return new Response(injectAnalytics(html, env), {
@@ -306,42 +306,53 @@ async function fetchAsset(env, request, path) {
 }
 
 /**
- * Google Analytics 4 snippet. The measurement ID (G-...) comes from
- * the ANALYTICS_ID env var — it is public (it ships in the page
- * source), so it lives in wrangler.toml [vars], not in a secret.
- * No ID configured → no snippet, pages served as-is.
+ * Google Tag Manager snippet (head part), exactly as Google gives it.
+ * The container ID (GTM-...) comes from the GTM_ID env var — it is
+ * public (it ships in the page source), so it lives in wrangler.toml
+ * [vars], not in a secret. No ID configured → no snippet.
  */
-function analyticsSnippet(id) {
+function gtmHeadSnippet(id) {
   return (
-    '<script async src="https://www.googletagmanager.com/gtag/js?id=' +
+    '<script async src="https://www.googletagmanager.com/gtm.js?id=' +
     id +
     '"></script>' +
     '<script>window.dataLayer=window.dataLayer||[];' +
     'function gtag(){dataLayer.push(arguments);}' +
-    'gtag("js",new Date());gtag("config","' +
+    "gtag('js',new Date());</script>"
+  );
+}
+
+/** GTM <noscript> fallback, injected right after <body>. */
+function gtmBodySnippet(id) {
+  return (
+    '<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=' +
     id +
-    '");</script>'
+    '" height="0" width="0" style="display:none;visibility:hidden">' +
+    '</iframe></noscript>'
   );
 }
 
 /**
- * Insert the analytics snippet just before </head>. Returns the HTML
- * unchanged when no ANALYTICS_ID is set, when it is not a plain
- * measurement ID (letters, digits, dash, underscore only), or when
- * the page has no </head> to anchor on.
+ * Insert the GTM snippets: the loader just before </head> and the
+ * <noscript> fallback just after <body>. Returns the HTML unchanged
+ * when no GTM_ID is set, when it is not a plain container ID
+ * (letters, digits, dash, underscore only), or when the page has no
+ * </head> to anchor on.
  */
 function injectAnalytics(html, env) {
   const id =
-    env && typeof env.ANALYTICS_ID === 'string'
-      ? env.ANALYTICS_ID.trim()
-      : '';
+    env && typeof env.GTM_ID === 'string' ? env.GTM_ID.trim() : '';
   if (!id || !/^[A-Za-z0-9_-]+$/.test(id)) {
     return html;
   }
   if (!html.includes('</head>')) {
     return html;
   }
-  return html.replace('</head>', analyticsSnippet(id) + '</head>');
+  let out = html.replace('</head>', gtmHeadSnippet(id) + '</head>');
+  if (out.includes('<body>')) {
+    out = out.replace('<body>', '<body>' + gtmBodySnippet(id));
+  }
+  return out;
 }
 
 /** True when the asset path exists (status anything but 404). */
