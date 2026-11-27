@@ -1,22 +1,22 @@
 /**
- * Transistor — OAuth2 forwarder (Cloudflare Worker).
+ * Transistor - OAuth2 forwarder (Cloudflare Worker).
  *
  * One job: be the redirect_uri the identity provider sends the browser
  * back to, validate the state, and forward the browser to the
  * application that started the flow. It holds no tokens, no codes, no
  * sessions, no database. It is provider- and app-agnostic: any app
- * that can build a state (spec §3) can use it, WordPress or not.
+ * that can build a state (spec sec. 3) can use it, WordPress or not.
  *
  * Contract: docs/spec.md (spec v1, state format v5).
  *
  * Endpoints:
- *   GET /oauth2   — the only live endpoint. Validates state, 302s to the
+ *   GET /oauth2   - the only live endpoint. Validates state, 302s to the
  *                    app's callback URL with code (or error)
  *                    + the full state, verbatim.
- *   GET /, /about, /privacy, /terms, /robots.txt, ... — static files
+ *   GET /, /about, /privacy, /terms, /robots.txt, ... - static files
  *                    served from public/ via the assets binding.
- *   Anything else — the error page, HTTP 404.
- *   Any non-GET — the error page, HTTP 405.
+ *   Anything else - the error page, HTTP 404.
+ *   Any non-GET - the error page, HTTP 405.
  *
  * Pages are plain static HTML with inline CSS (no build step, no
  * separate stylesheet). The error page is one file (public/error.html)
@@ -30,12 +30,12 @@ const NO_STORE = 'no-store, no-cache, must-revalidate';
 const NONCE_RE = /^[0-9a-f]{32}$/;
 
 // What the error page says, per status. The 400 message stays generic
-// on purpose — no detail about which check failed, so it can't be used
+// on purpose - no detail about which check failed, so it can't be used
 // as a probe oracle. The 404/405 messages say what actually happened.
 const ERROR_PAGES = {
   400: {
     code: '400',
-    title: 'Something went wrong',
+    title: 'Invalid authorization request',
     message:
       'Invalid or expired authorization request. ' +
       'Please start again from the application that sent you here.',
@@ -61,8 +61,8 @@ const MINIMAL_ERROR_HTML =
   '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width, initial-scale=1">' +
   '<meta name="robots" content="noindex, noarchive, noodp, noydir">' +
-  '<title>Something went wrong — Transistor</title></head>' +
-  '<body><h1>Something went wrong</h1>' +
+  '<title>Invalid authorization request - Transistor</title></head>' +
+  '<body><h1>Invalid authorization request</h1>' +
   '<p>Invalid or expired authorization request. ' +
   'Please start again from the application that sent you here.</p></body></html>';
 
@@ -89,9 +89,9 @@ export default {
 };
 
 /**
- * GET /oauth2 — the redirect_uri registered with the provider.
- * Validates the state (spec §4), then 302s to the app's callback URL
- * with the code (or error) and the full state, verbatim (spec §5).
+ * GET /oauth2 - the redirect_uri registered with the provider.
+ * Validates the state (spec sec. 4), then 302s to the app's callback URL
+ * with the code (or error) and the full state, verbatim (spec sec. 5).
  */
 async function handleOAuth2(env, request, url) {
   const state = url.searchParams.get('state');
@@ -99,7 +99,7 @@ async function handleOAuth2(env, request, url) {
   const error = url.searchParams.get('error');
   const errorDescription = url.searchParams.get('error_description');
 
-  // Any validation failure → 400 + error page. No redirect, no forward.
+  // Any validation failure -> 400 + error page. No redirect, no forward.
   const valid = await validateState(state);
   if (!valid.ok) {
     return errorResponse(env, request, 400);
@@ -125,13 +125,13 @@ async function handleOAuth2(env, request, url) {
     return redirectResponse(target.toString());
   }
 
-  // Valid state but neither a code nor an error — nothing to forward.
+  // Valid state but neither a code nor an error - nothing to forward.
   return errorResponse(env, request, 400);
 }
 
 /**
- * State validation (spec §4), in order. Returns { ok: true, u } or
- * { ok: false }. Never throws on bad input — a malformed state is just
+ * State validation (spec sec. 4), in order. Returns { ok: true, u } or
+ * { ok: false }. Never throws on bad input - a malformed state is just
  * a 400.
  */
 async function validateState(state) {
@@ -165,7 +165,7 @@ async function validateState(state) {
   }
 
   // u must be an https callback URL. No app-specific path or action is
-  // required — Transistor is global: any app (WordPress, a plain web
+  // required - Transistor is global: any app (WordPress, a plain web
   // app, a mobile backend) can point the state at its own callback.
   // The state HMAC is a corruption checksum, not tamper protection,
   // so the real guard is the app's own state/nonce check on return.
@@ -173,8 +173,8 @@ async function validateState(state) {
     return { ok: false };
   }
 
-  // s must be the HMAC-SHA-256 of u, keyed by n (spec §3.1). The sign is
-  // a corruption checksum, not tamper protection — anyone holding the
+  // s must be the HMAC-SHA-256 of u, keyed by n (spec sec. 3.1). The sign is
+  // a corruption checksum, not tamper protection - anyone holding the
   // state can recompute it. Real authenticity comes from the app's
   // own nonce check plus PKCE.
   if (typeof payload.s !== 'string') {
@@ -189,8 +189,8 @@ async function validateState(state) {
 }
 
 /**
- * Callback-URL check (spec §4): any https URL with a hostname. No
- * app-specific path, action or host is required — Transistor is a
+ * Callback-URL check (spec sec. 4): any https URL with a hostname. No
+ * app-specific path, action or host is required - Transistor is a
  * global forwarder, not a WordPress/TrayDigita-only one. The https
  * requirement is the only transport rule (no plain-http callbacks).
  */
@@ -207,7 +207,7 @@ function isValidCallbackUrl(u) {
   return parsed.hostname.length > 0;
 }
 
-/** 302 to the site. Never cached — the URL carries a single-use code. */
+/** 302 to the site. Never cached - the URL carries a single-use code. */
 function redirectResponse(location) {
   return new Response(null, {
     status: 302,
@@ -221,7 +221,7 @@ function redirectResponse(location) {
 }
 
 /**
- * The error page (spec §6): public/error.html served from the assets
+ * The error page (spec sec. 6): public/error.html served from the assets
  * binding, with the {{ERROR_TITLE}} / {{ERROR_MESSAGE}} placeholders
  * filled in for this status, plus the right status and headers. Falls
  * back to an inline minimal page if the asset cannot be served.
@@ -257,7 +257,7 @@ async function errorResponse(env, request, status) {
  * page) or when no assets binding is configured.
  *
  * Friendly page URLs (/about, /privacy, /terms) 301-redirect to their
- * .html files — the .html URL is the canonical one. The home page /
+ * .html files - the .html URL is the canonical one. The home page /
  * serves public/index.html directly (no redirect to /index.html).
  */
 async function serveStatic(env, request) {
@@ -307,9 +307,9 @@ async function fetchAsset(env, request, path) {
 
 /**
  * Google Tag Manager snippet (head part), exactly as Google gives it.
- * The container ID (GTM-...) comes from the GTM_ID env var — it is
+ * The container ID (GTM-...) comes from the GTM_ID env var - it is
  * public (it ships in the page source), so it lives in wrangler.toml
- * [vars], not in a secret. No ID configured → no snippet.
+ * [vars], not in a secret. No ID configured -> no snippet.
  */
 function gtmHeadSnippet(id) {
   return (
@@ -365,13 +365,13 @@ async function assetExists(env, request, path) {
  * Fetch an asset from the assets binding, following one redirect if
  * the asset store answers with one. The store canonicalises .html
  * URLs to clean URLs (e.g. /terms.html -> /terms), so a plain fetch
- * of an .html file comes back 301, not 200 — follow it once to get
+ * of an .html file comes back 301, not 200 - follow it once to get
  * the file's content. Returns null when the binding is missing or
  * the fetch fails.
  *
  * The fetch URL uses a fixed dummy origin (https://assets.local),
  * NEVER request.url: the binding serves purely by path, and using
- * the real host is a bug — on a custom domain the edge can route
+ * the real host is a bug - on a custom domain the edge can route
  * that host back into the Worker, so following the asset store's
  * clean-URL redirect (/terms.html -> /terms) re-enters the Worker
  * and loops until Cloudflare times out (522). The dummy origin can
@@ -393,7 +393,7 @@ async function fetchAssetRaw(env, request, path) {
     if (location) {
       try {
         // Use ONLY the pathname of the redirect target. The Location
-        // may be an absolute URL carrying the real host — feeding that
+        // may be an absolute URL carrying the real host - feeding that
         // back into the binding would re-enter the edge and loop.
         // The binding serves purely by path, so the dummy origin plus
         // the bare pathname is all it ever needs.
@@ -425,7 +425,7 @@ function redirectPermanent(location) {
   });
 }
 
-/** base64url → UTF-8 string. Throws on bad alphabet or bad UTF-8. */
+/** base64url -> UTF-8 string. Throws on bad alphabet or bad UTF-8. */
 function base64urlDecode(input) {
   let s = input.replace(/-/g, '+').replace(/_/g, '/');
   const pad = s.length % 4;

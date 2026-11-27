@@ -1,4 +1,4 @@
-# Transistor — OAuth2 forwarder (Cloudflare Worker)
+# Transistor - OAuth2 forwarder (Cloudflare Worker)
 # Spec: docs/spec.md (spec v1, state format v5)
 #
 # Deploy: npx wrangler deploy
@@ -9,18 +9,18 @@ name = "transistor"
 main = "src/index.js"
 compatibility_date = "2026-11-24"
 
-# Custom domain — the trust anchor users see. Reachable via the DNS
-# CNAME transistor.pentagonal.org → transistor.nwm-643.workers.dev
+# Custom domain - the trust anchor users see. Reachable via the DNS
+# CNAME transistor.pentagonal.org -> transistor.nwm-643.workers.dev
 # (same pattern as muse-licensing). This is a `custom_domain` route,
 # NOT a wildcard [[routes]] pattern: the old
 # `pattern = "transistor.pentagonal.org/*"` route plus the CNAME made
 # Cloudflare 522. The custom_domain route is the modern way to attach
-# a domain to a Worker with Static Assets, and it is REQUIRED — with
+# a domain to a Worker with Static Assets, and it is REQUIRED - with
 # only the DNS CNAME and no route, the asset store serves `/` directly
 # but Worker-invoked paths (/oauth2, /terms, /nope) 522 because the
 # Worker is not bound to the custom domain for them.
 #
-# NOTE: `routes` is a TOP-LEVEL key — it MUST sit here, before the
+# NOTE: `routes` is a TOP-LEVEL key - it MUST sit here, before the
 # [assets] table. A `routes` line placed after [assets] is silently
 # parsed as assets.routes and ignored (wrangler warns "Unexpected
 # fields found in assets field: routes"). That is exactly what
